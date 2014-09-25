@@ -32,13 +32,13 @@ if (hmd _player != "") then { _player unlinkItem hmd _player };
 
 _player addBackpack "B_AssaultPack_rgr";
 
-_player addMagazine "9Rnd_45ACP_Mag";
 _player addWeapon "hgun_ACPC2_F";
-_player addMagazine "9Rnd_45ACP_Mag";
-_player addMagazine "9Rnd_45ACP_Mag";
-_player addMagazine "9Rnd_45ACP_Mag";
+_player addMagazine "6Rnd_45ACP_Cylinder";
+_player addMagazine "6Rnd_45ACP_Cylinder";
+_player addMagazine "6Rnd_45ACP_Cylinder";
+_player addMagazine "6Rnd_45ACP_Cylinder";
 _player addItem "FirstAidKit";
-_player selectWeapon "hgun_ACPC2_F";
+_player selectWeapon "hgun_Pistol_heavy_02_F";
 
 if (_player == player) then
 {
