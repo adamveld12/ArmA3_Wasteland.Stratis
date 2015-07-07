@@ -1,3 +1,6 @@
+// ******************************************************************************************
+// * This project is licensed under the GNU Affero GPL v3. Copyright © 2014 A3Wasteland.com *
+// ******************************************************************************************
 //	@file Version: 1.1
 //	@file Name: checkAdmin.sqf
 //	@file Author: [404] Deadbeat, AgentRev
@@ -6,6 +9,8 @@
 
 private ["_uid","_handle"];
 _uid = getPlayerUID player;
+
+if (!isNull (uiNamespace getVariable ["AdminMenu", displayNull]) || player getVariable ["FAR_isUnconscious", 0] == 1) exitWith {};
 
 switch (true) do
 {
@@ -22,16 +27,11 @@ switch (true) do
 	case ([_uid, lowAdmins] call isAdmin):
 	{
 		execVM "client\systems\adminPanel\loadModeratorMenu.sqf";
-		hint "Welcome Admin";
-	};
-	case (serverCommandAvailable "#exec ban"):
-	{
-		execVM "client\systems\adminPanel\loadServerAdministratorMenu.sqf";
-		hint "Welcome Boss";
+		hint "Welcome Low Admin";
 	};
 	case (serverCommandAvailable "#kick"):
 	{
-		execVM "client\systems\adminPanel\loadModeratorMenu.sqf";
-		hint "Welcome Admin";
+		execVM "client\systems\adminPanel\loadServerAdministratorMenu.sqf";
+		hint "Welcome Boss";
 	};
 };

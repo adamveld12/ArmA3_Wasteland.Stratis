@@ -1,28 +1,26 @@
+// ******************************************************************************************
+// * This project is licensed under the GNU Affero GPL v3. Copyright © 2014 A3Wasteland.com *
+// ******************************************************************************************
 #include "defines.sqf"
 #define ERR_NOT_ENOUGH_FUNDS "You don't have enough money."
-private ["_warchest", "_amount", "_money"];
-disableSerialization;
-_warchest = findDisplay IDD_WARCHEST;
-if (isNull _warchest) exitWith {};
 
-_amount = round (parseNumber (ctrlText IDC_AMOUNT));
+disableSerialization;
+private ["_dialog", "_input", "_amount", "_money"];
+_dialog = findDisplay IDD_WARCHEST;
+if (isNull _dialog) exitWith {};
+
+_input = _dialog displayCtrl IDC_AMOUNT;
+_amount = _input call mf_verify_money_input;
+
+if (_amount < 1) exitWith {};
+
 _money = player getVariable ["cmoney", 0];
 
-if (_money < _amount) exitWith {
-    [ERR_NOT_ENOUGH_FUNDS, 5] call mf_notify_client;
-};
-player setVariable["cmoney",(_money - _amount),true];
-
-switch (playerSide) do {
-    case east : {
-    	pvar_warchest_funds_east = pvar_warchest_funds_east + _amount;
-    	publicVariable "pvar_warchest_funds_east";
-    };
-    case west : {
-    	pvar_warchest_funds_west = pvar_warchest_funds_west + _amount;
-    	publicVariable "pvar_warchest_funds_west";
-    };
-    default {hint "WarchestRefrest - This Shouldnt Happen"};
+if (_money < _amount) exitWith
+{
+	[ERR_NOT_ENOUGH_FUNDS, 5] call mf_notify_client;
+	playSound "FD_CP_Not_Clear_F";
 };
 
-call mf_items_warchest_refresh;
+pvar_processTransaction = ["warchest", player, _amount];
+publicVariableServer "pvar_processTransaction";

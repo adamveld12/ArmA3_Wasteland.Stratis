@@ -1,3 +1,6 @@
+// ******************************************************************************************
+// * This project is licensed under the GNU Affero GPL v3. Copyright © 2014 A3Wasteland.com *
+// ******************************************************************************************
 //	@file Version: 1.0
 //	@file Name: setup.sqf
 //	@file Author: AgentRev
@@ -5,16 +8,32 @@
 
 if (!isServer) exitWith {};
 
-if (isNil "ahSetupDone") then
+if (isNil "A3W_network_compileFuncs") then
 {
-	private ["_packetKey", "_assignPacketKey", "_packetKeyArray", "_checksum", "_assignChecksum", "_checksumArray", "_networkCompile"];
-	
-	_packetKey = call generateKey;
-	
+	private ["_compileKey", "_assignCompileKey", "_packetKey", "_assignPacketKey", "_packetKeyArray", "_checksum", "_assignChecksum", "_checksumArray", "_rscList", "_rscParams", "_rscCfg"];
+
+	_compileKey = call A3W_fnc_generateKey;
+
+	_assignCompileKey = "";
+	for "_x" from 0 to (floor random 50) do { _assignCompileKey = _assignCompileKey + " " };
+	_assignCompileKey = _assignCompileKey + 'private "_compileKey";';
+	for "_x" from 0 to (floor random 50) do { _assignCompileKey = _assignCompileKey + " " };
+	for "_x" from 0 to (floor random 5) do { _assignCompileKey = _assignCompileKey + str floor random 10 + '=" private ""_compileKey""; call compile toString [' + str floor random 100 + '];";' };
+	_assignCompileKey = _assignCompileKey + "call compile toString ";
+	_compileKeyArray = "_compileKey = ";
+	{
+		if (_forEachIndex > 0) then { _compileKeyArray = _compileKeyArray + "+" };
+		_compileKeyArray = _compileKeyArray + format ['"%1"', toString [_x]];
+	} forEach toArray _compileKey;
+	_assignCompileKey = _assignCompileKey + (str toArray _compileKeyArray) + "; ";
+
+	_packetKey = call A3W_fnc_generateKey;
+
 	_assignPacketKey = "";
 	for "_x" from 0 to (floor random 50) do { _assignPacketKey = _assignPacketKey + " " };
 	_assignPacketKey = _assignPacketKey + 'private "_mpPacketKey";';
 	for "_x" from 0 to (floor random 50) do { _assignPacketKey = _assignPacketKey + " " };
+	for "_x" from 0 to (floor random 5) do { _assignPacketKey = _assignPacketKey + str floor random 10 + '=" private ""_packetKey""; call compile toString [' + str floor random 100 + '];";' };
 	_assignPacketKey = _assignPacketKey + "call compile toString ";
 	_packetKeyArray = "_mpPacketKey = ";
 	{
@@ -22,13 +41,14 @@ if (isNil "ahSetupDone") then
 		_packetKeyArray = _packetKeyArray + format ['"%1"', toString [_x]];
 	} forEach toArray _packetKey;
 	_assignPacketKey = _assignPacketKey + (str toArray _packetKeyArray) + "; ";
-	
-	_checksum = call generateKey;
-	
+
+	_checksum = call A3W_fnc_generateKey;
+
 	_assignChecksum = "";
 	for "_x" from 0 to (floor random 50) do { _assignChecksum = _assignChecksum + " " };
 	_assignChecksum = _assignChecksum + 'private "_flagChecksum";';
 	for "_x" from 0 to (floor random 50) do { _assignChecksum = _assignChecksum + " " };
+	for "_x" from 0 to (floor random 5) do { _assignChecksum = _assignChecksum + str floor random 10 + '=" private ""_checksum""; call compile toString [' + str floor random 100 + '];";' };
 	_assignChecksum = _assignChecksum + "call compile toString ";
 	_checksumArray = "_flagChecksum = ";
 	{
@@ -36,20 +56,21 @@ if (isNil "ahSetupDone") then
 		_checksumArray = _checksumArray + format ['"%1"', toString [_x]];
 	} forEach toArray _checksum;
 	_assignChecksum = _assignChecksum + (str toArray _checksumArray) + "; ";
-	
-	A3W_network_compileFuncs = compile ("['" + _assignChecksum + "','" + _assignPacketKey + "'] call compile preprocessFileLineNumbers 'server\antihack\compileFuncs.sqf'");
-	_networkCompile = [] spawn A3W_network_compileFuncs;
-	publicVariable "A3W_network_compileFuncs";
-	waitUntil {sleep 0.1; scriptDone _networkCompile};
-	
-	"A3W_network_compileFuncs" addPublicVariableEventHandler { _this set [1, A3W_network_compileFuncs] };
-	
-	flagHandler = compileFinal (_assignChecksum + (preprocessFileLineNumbers "server\antihack\flagHandler.sqf"));
-	[] spawn compile (_assignChecksum + (preprocessFileLineNumbers "server\antihack\serverSide.sqf"));
-	
-	LystoAntiAntiHack = compileFinal "false";
-	AntiAntiAntiAntiHack = compileFinal "false";
-	
-	ahSetupDone = compileFinal "true";
-	diag_log "ANTI-HACK 0.8.0: Started.";
+
+	_rscList = ["RscDisplayAVTerminal", "RscDisplayCommonHint", "RscDisplayCommonMessage", "RscDisplayCommonMessagePause", "RscDisplayConfigureAction", "RscDisplayConfigureControllers", "RscDisplayControlSchemes", "RscDisplayCustomizeController", "RscDisplayDebriefing", "RscDisplayDiary", "RscDisplayFieldManual", "RscDisplayGameOptions", "RscDisplayGetReady", "RscDisplayInsertMarker", "RscDisplayInterrupt", "RscDisplayInventory", "RscDisplayJoystickSchemes", "RscDisplayLoading", "RscDisplayLoadMission", "RscDisplayMainMap", "RscDisplayMicSensitivityOptions", "RscDisplayOptions", "RscDisplayOptionsAudio", "RscDisplayOptionsLayout", "RscDisplayOptionsVideo", "RscDisplayStart", "RscDisplayVehicleMsgBox", "RscDisplayVoiceChat"];
+	_rscParams = [];
+
+	{
+		_rscCfg = configFile >> _x;
+
+		if (isClass _rscCfg) then
+		{
+			_rscParams pushBack [_x, toArray getText (_rscCfg >> "onLoad"), toArray getText (_rscCfg >> "onUnload")];
+		};
+	} forEach _rscList;
+
+	[_assignCompileKey, _assignChecksum, _assignPacketKey, str _rscParams] call compile preprocessFileLineNumbers "server\antihack\createUnit.sqf";
+	waitUntil {!isNil {missionNamespace getVariable _compileKey}};
+
+	diag_log "ANTI-HACK: Started.";
 };
